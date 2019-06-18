@@ -2,7 +2,6 @@ module Huffman
     ( main
     ) where
 
-import Data.Binary
 import Data.List
 import Control.Applicative
 import Weighted
@@ -43,38 +42,10 @@ buildTree h =
   in
     binTree
 
-putTree :: Binary a => PrefixTree.PrefixTree a -> Put
-putTree (PrefixTree.Leaf a) = do
-  put True
-  put a
-putTree (PrefixTree.Branch l r) = do
-  put False
-  put l
-  put r
-
-getTree :: Binary a => Get (PrefixTree.PrefixTree a)
-getTree = do
-  isLeaf <- get
-  if isLeaf
-    then PrefixTree.Leaf <$> get
-    else PrefixTree.Branch <$> get <*> get
-
-instance Binary a => Binary (PrefixTree.PrefixTree a) where
-  put = putTree
-  get = getTree
-
 data Direction = DLeft | DRight
   deriving (Show, Eq)
 
 type Encoding = [Direction]
-
-encodeChar :: Eq a => a -> PrefixTree.PrefixTree a -> Maybe Encoding
-encodeChar c t = encode t []
-  where
-    encode (PrefixTree.Leaf a) encoding | a == c    = Just (reverse encoding)
-                                        | otherwise = Nothing
-    encode (PrefixTree.Branch l r) encoding =  encode l (DLeft:encoding)
-                                           <|> encode r (DRight:encoding)
 
 encodingTable :: Ord a => PrefixTree.PrefixTree a -> M.Map a Encoding
 encodingTable t = encode t []
