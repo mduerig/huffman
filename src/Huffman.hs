@@ -73,14 +73,17 @@ encodeChar c t = encode t []
                                         | otherwise = Nothing
     encode (PrefixTree.Branch l r) encoding =  encode l (DLeft:encoding) 
                                            <|> encode r (DRight:encoding)
+encodingTable :: Ord a => PrefixTree.BinTree a -> M.Map a Encoding
+encodingTable t = encode t []
+  where
+    encode (PrefixTree.Leaf a)     encoding = M.singleton a (reverse encoding)
+    encode (PrefixTree.Branch l r) encoding = encode l (DLeft:encoding)
+                                           <> encode r (DRight:encoding)
+
 
 main :: IO ()
 main = do
   let h = buildHeap "aaaaaabbcdef"
   let t = buildTree h
-  let ea = encodeChar 'a' t
-  let eb = encodeChar 'b' t
-  let ec = encodeChar 'c' t
-  print ea
-  print eb
-  print ec
+  let e = encodingTable t
+  print e
