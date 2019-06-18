@@ -73,6 +73,7 @@ encodeChar c t = encode t []
                                         | otherwise = Nothing
     encode (PrefixTree.Branch l r) encoding =  encode l (DLeft:encoding) 
                                            <|> encode r (DRight:encoding)
+
 encodingTable :: Ord a => PrefixTree.BinTree a -> M.Map a Encoding
 encodingTable t = encode t []
   where
@@ -80,10 +81,17 @@ encodingTable t = encode t []
     encode (PrefixTree.Branch l r) encoding = encode l (DLeft:encoding)
                                            <> encode r (DRight:encoding)
 
+encodeString :: Ord a => (M.Map a Encoding) -> [a] ->  Maybe Encoding
+encodeString m as = 
+  let 
+    enc = map (\k -> M.lookup k m)
+  in
+    concat <$> (sequence . enc $ as)
 
 main :: IO ()
 main = do
   let h = buildHeap "aaaaaabbcdef"
   let t = buildTree h
   let e = encodingTable t
-  print e
+  let Just c = encodeString e "abc"
+  print c
