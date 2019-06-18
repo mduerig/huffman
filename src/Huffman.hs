@@ -2,7 +2,6 @@ module Huffman
     ( main
     ) where
 
-import Control.Monad.State
 import qualified Data.Map.Strict as M
 import qualified Heap
 import qualified PrefixTree
