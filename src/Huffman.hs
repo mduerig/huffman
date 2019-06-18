@@ -3,6 +3,7 @@ module Huffman
     ) where
 
 import Data.Binary     
+import Control.Applicative
 import qualified Data.Map.Strict as M
 import qualified Heap
 import qualified PrefixTree
@@ -59,14 +60,27 @@ getTree = do
 instance Binary a => Binary (PrefixTree.BinTree a) where
   put = putTree
   get = getTree
-    
+
+data Direction = DLeft | DRight 
+  deriving (Show, Eq)
+
+type Encoding = [Direction]
+
+encodeChar :: Eq a => a -> PrefixTree.BinTree a -> Maybe Encoding
+encodeChar c t = encode t []
+  where
+    encode (PrefixTree.Leaf a) encoding | a == c    = Just (reverse encoding) 
+                                        | otherwise = Nothing
+    encode (PrefixTree.Branch l r) encoding =  encode l (DLeft:encoding) 
+                                           <|> encode r (DRight:encoding)
+
 main :: IO ()
 main = do
   let h = buildHeap "aaaaaabbcdef"
   let t = buildTree h
-  let e = encode t
-  let d = decode e :: PrefixTree.BinTree Char
-  print t
-  print e
-  print d
-  print (t == d)
+  let ea = encodeChar 'a' t
+  let eb = encodeChar 'b' t
+  let ec = encodeChar 'c' t
+  print ea
+  print eb
+  print ec
