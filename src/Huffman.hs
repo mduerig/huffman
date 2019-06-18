@@ -2,7 +2,8 @@ module Huffman
     ( main
     ) where
 
-import Data.Binary     
+import Data.Binary
+import Data.List
 import Control.Applicative
 import qualified Data.Map.Strict as M
 import qualified Heap
@@ -41,8 +42,8 @@ buildTree h =
   in
     binTree
 
-putTree :: Binary a => PrefixTree.BinTree a -> Put 
-putTree (PrefixTree.Leaf a) = do 
+putTree :: Binary a => PrefixTree.BinTree a -> Put
+putTree (PrefixTree.Leaf a) = do
   put True
   put a
 putTree (PrefixTree.Branch l r) = do
@@ -61,7 +62,7 @@ instance Binary a => Binary (PrefixTree.BinTree a) where
   put = putTree
   get = getTree
 
-data Direction = DLeft | DRight 
+data Direction = DLeft | DRight
   deriving (Show, Eq)
 
 type Encoding = [Direction]
@@ -69,9 +70,9 @@ type Encoding = [Direction]
 encodeChar :: Eq a => a -> PrefixTree.BinTree a -> Maybe Encoding
 encodeChar c t = encode t []
   where
-    encode (PrefixTree.Leaf a) encoding | a == c    = Just (reverse encoding) 
+    encode (PrefixTree.Leaf a) encoding | a == c    = Just (reverse encoding)
                                         | otherwise = Nothing
-    encode (PrefixTree.Branch l r) encoding =  encode l (DLeft:encoding) 
+    encode (PrefixTree.Branch l r) encoding =  encode l (DLeft:encoding)
                                            <|> encode r (DRight:encoding)
 
 encodingTable :: Ord a => PrefixTree.BinTree a -> M.Map a Encoding
@@ -82,23 +83,20 @@ encodingTable t = encode t []
                                            <> encode r (DRight:encoding)
 
 encodeString :: Ord a => (M.Map a Encoding) -> [a] ->  Maybe Encoding
-encodeString m as = 
-  let 
+encodeString m as =
+  let
     enc = map (\k -> M.lookup k m)
   in
     concat <$> (sequence . enc $ as)
 
 decodeChar :: Encoding -> PrefixTree.BinTree a -> Maybe (a, Encoding)
-decodeChar ds (PrefixTree.Leaf a) = Just(a, ds) 
+decodeChar ds (PrefixTree.Leaf a) = Just(a, ds)
 decodeChar (DLeft:ds ) (PrefixTree.Branch l r) = decodeChar ds l
 decodeChar (DRight:ds) (PrefixTree.Branch l r) = decodeChar ds r
 decodeChar _ _ = Nothing
 
-decodeString :: Encoding -> PrefixTree.BinTree a -> Maybe [a]
-decodeString [] _ = Just []
-decodeString ds t = case decodeChar ds t of
-  Just (a, ds') -> (a:) <$> (decodeString ds' t)
-  otherwise     -> Nothing
+decodeString :: Encoding -> PrefixTree.BinTree a -> [a]
+decodeString ds t = unfoldr (`decodeChar` t) ds
 
 main :: IO ()
 main = do
