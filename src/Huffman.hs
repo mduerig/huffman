@@ -88,10 +88,25 @@ encodeString m as =
   in
     concat <$> (sequence . enc $ as)
 
+decodeChar :: Encoding -> PrefixTree.BinTree a -> Maybe (a, Encoding)
+decodeChar ds (PrefixTree.Leaf a) = Just(a, ds) 
+decodeChar (DLeft:ds ) (PrefixTree.Branch l r) = decodeChar ds l
+decodeChar (DRight:ds) (PrefixTree.Branch l r) = decodeChar ds r
+decodeChar _ _ = Nothing
+
+decodeString :: Encoding -> PrefixTree.BinTree a -> Maybe [a]
+decodeString [] _ = Just []
+decodeString ds t = case decodeChar ds t of
+  Just (a, ds') -> (a:) <$> (decodeString ds' t)
+  otherwise     -> Nothing
+
 main :: IO ()
 main = do
   let h = buildHeap "aaaaaabbcdef"
   let t = buildTree h
   let e = encodingTable t
   let Just c = encodeString e "abc"
+  let ds = decodeString c t
+  print t
   print c
+  print ds
