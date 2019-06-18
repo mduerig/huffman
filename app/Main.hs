@@ -1,6 +1,6 @@
 module Main where
 
-import Lib
+import qualified Huffman
 
 main :: IO ()
-main = someFunc
+main = Huffman.main
