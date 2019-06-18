@@ -2,6 +2,7 @@ module Huffman
     ( main
     ) where
 
+import Data.Binary     
 import qualified Data.Map.Strict as M
 import qualified Heap
 import qualified PrefixTree
@@ -39,8 +40,15 @@ buildTree h =
   in
     binTree
 
+instance Binary a => Binary (PrefixTree.BinTree a)
+    
 main :: IO ()
 main = do
   let h = buildHeap "aaaaaabbcdef"
   let t = buildTree h
+  let e = encode t
+  let d = decode e :: PrefixTree.BinTree Char
   print t
+  print e
+  print d
+  print (t == d)

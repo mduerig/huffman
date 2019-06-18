@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module PrefixTree 
     ( WeightedTree
     , BinTree
@@ -6,10 +8,11 @@ module PrefixTree
     , branch
     ) where
 
+import GHC.Generics        
 data BinTree a
     = Leaf a
     | Branch (BinTree a) (BinTree a)
-    deriving Show
+    deriving (Show, Eq, Generic)
 
 data Weighted a = Weighted Int a deriving Show
 
