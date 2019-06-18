@@ -40,7 +40,25 @@ buildTree h =
   in
     binTree
 
-instance Binary a => Binary (PrefixTree.BinTree a)
+putTree :: Binary a => PrefixTree.BinTree a -> Put 
+putTree (PrefixTree.Leaf a) = do 
+  put True
+  put a
+putTree (PrefixTree.Branch l r) = do
+  put False
+  put l
+  put r
+
+getTree :: Binary a => Get (PrefixTree.BinTree a)
+getTree = do
+  isLeaf <- get
+  if isLeaf
+    then PrefixTree.Leaf <$> get
+    else PrefixTree.Branch <$> get <*> get
+
+instance Binary a => Binary (PrefixTree.BinTree a) where
+  put = putTree
+  get = getTree
     
 main :: IO ()
 main = do

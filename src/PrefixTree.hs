@@ -2,17 +2,16 @@
 
 module PrefixTree 
     ( WeightedTree
-    , BinTree
+    , BinTree (Leaf, Branch)
     , Weighted (Weighted)
     , leaf
     , branch
     ) where
 
-import GHC.Generics        
 data BinTree a
     = Leaf a
     | Branch (BinTree a) (BinTree a)
-    deriving (Show, Eq, Generic)
+    deriving (Show, Eq)
 
 data Weighted a = Weighted Int a deriving Show
 
