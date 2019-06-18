@@ -1,25 +1,16 @@
-{-# LANGUAGE DeriveGeneric #-}
-
 module PrefixTree 
     ( WeightedTree
     , BinTree (Leaf, Branch)
-    , Weighted (Weighted)
     , leaf
     , branch
     ) where
 
+import Weighted 
+        
 data BinTree a
     = Leaf a
     | Branch (BinTree a) (BinTree a)
     deriving (Show, Eq)
-
-data Weighted a = Weighted Int a deriving Show
-
-instance Eq (Weighted a) where
-    Weighted v _ == Weighted w _ = v == w
-
-instance Ord (Weighted a) where
-    compare (Weighted v _) (Weighted w _) = compare v w 
 
 type WeightedTree a = Weighted (BinTree a)
 

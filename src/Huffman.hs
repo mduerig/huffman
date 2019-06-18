@@ -5,6 +5,7 @@ module Huffman
 import Data.Binary
 import Data.List
 import Control.Applicative
+import Weighted
 import qualified Data.Map.Strict as M
 import qualified Heap
 import qualified PrefixTree
@@ -38,7 +39,7 @@ buildTree h =
       Nothing -> h
       Just h' -> mergeRec h'
 
-    Just (PrefixTree.Weighted _ binTree) = fmap Prelude.fst . Heap.pop $ mergeRec h
+    Just (Weighted _ binTree) = fmap Prelude.fst . Heap.pop $ mergeRec h
   in
     binTree
 
