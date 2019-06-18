@@ -1,5 +1,7 @@
 module PrefixTree 
     ( WeightedTree
+    , BinTree
+    , Weighted (Weighted)
     , leaf
     , branch
     ) where

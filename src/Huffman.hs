@@ -29,14 +29,16 @@ merge2 h = do
   let branch = PrefixTree.branch x0 x1
   return $ Heap.push branch h1
 
-buildTree :: CHeap -> Maybe HTree
+buildTree :: CHeap -> PrefixTree.BinTree Char
 buildTree h =
   let
     mergeRec h = case merge2 h of
       Nothing -> h
       Just h' -> mergeRec h'
+
+    Just (PrefixTree.Weighted _ binTree) = fmap Prelude.fst . Heap.pop $ mergeRec h
   in
-    fmap Prelude.fst . Heap.pop $ mergeRec h
+    binTree
 
 main :: IO ()
 main = do
