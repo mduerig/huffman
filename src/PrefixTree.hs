@@ -1,23 +1,31 @@
 module PrefixTree 
-    ( WeightedTree
-    , BinTree (Leaf, Branch)
-    , leaf
-    , branch
+    ( PrefixTree (Leaf, Branch)
+    , ptLeaf
+    , ptBranch
+    , WeightedTree
+    , weightedLeaf
+    , weightedBranch
     ) where
 
 import Weighted 
         
-data BinTree a
+data PrefixTree a
     = Leaf a
-    | Branch (BinTree a) (BinTree a)
+    | Branch (PrefixTree a) (PrefixTree a)
     deriving (Show, Eq)
 
-type WeightedTree a = Weighted (BinTree a)
+type WeightedTree a = Weighted (PrefixTree a)
 
-leaf :: Int -> a -> WeightedTree a
-leaf i = Weighted i . Leaf
+ptLeaf :: a -> PrefixTree a
+ptLeaf = Leaf
 
-branch :: WeightedTree a -> WeightedTree a -> WeightedTree a
-branch (Weighted v l) (Weighted w r) = Weighted (v + w) (Branch l r)
+ptBranch :: PrefixTree a -> PrefixTree a -> PrefixTree a
+ptBranch = Branch
+
+weightedLeaf :: Int -> a -> WeightedTree a
+weightedLeaf i = Weighted i . Leaf
+
+weightedBranch :: WeightedTree a -> WeightedTree a -> WeightedTree a
+weightedBranch (Weighted v l) (Weighted w r) = Weighted (v + w) (Branch l r)
     
 

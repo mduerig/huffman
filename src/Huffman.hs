@@ -23,16 +23,16 @@ type CHeap = Heap.Heap HTree
 buildHeap :: String -> CHeap
 buildHeap s = M.foldrWithKey pushLeaf Heap.empty (frequencies s)
   where
-    pushLeaf c i h = Heap.push (PrefixTree.leaf i c) h
+    pushLeaf c i h = Heap.push (PrefixTree.weightedLeaf i c) h
 
 merge2 :: CHeap -> Maybe CHeap
 merge2 h = do
   (x0, h0) <- Heap.pop h
   (x1, h1) <- Heap.pop h0
-  let branch = PrefixTree.branch x0 x1
+  let branch = PrefixTree.weightedBranch x0 x1
   return $ Heap.push branch h1
 
-buildTree :: CHeap -> PrefixTree.BinTree Char
+buildTree :: CHeap -> PrefixTree.PrefixTree Char
 buildTree h =
   let
     mergeRec h = case merge2 h of
@@ -43,7 +43,7 @@ buildTree h =
   in
     binTree
 
-putTree :: Binary a => PrefixTree.BinTree a -> Put
+putTree :: Binary a => PrefixTree.PrefixTree a -> Put
 putTree (PrefixTree.Leaf a) = do
   put True
   put a
@@ -52,14 +52,14 @@ putTree (PrefixTree.Branch l r) = do
   put l
   put r
 
-getTree :: Binary a => Get (PrefixTree.BinTree a)
+getTree :: Binary a => Get (PrefixTree.PrefixTree a)
 getTree = do
   isLeaf <- get
   if isLeaf
     then PrefixTree.Leaf <$> get
     else PrefixTree.Branch <$> get <*> get
 
-instance Binary a => Binary (PrefixTree.BinTree a) where
+instance Binary a => Binary (PrefixTree.PrefixTree a) where
   put = putTree
   get = getTree
 
@@ -68,7 +68,7 @@ data Direction = DLeft | DRight
 
 type Encoding = [Direction]
 
-encodeChar :: Eq a => a -> PrefixTree.BinTree a -> Maybe Encoding
+encodeChar :: Eq a => a -> PrefixTree.PrefixTree a -> Maybe Encoding
 encodeChar c t = encode t []
   where
     encode (PrefixTree.Leaf a) encoding | a == c    = Just (reverse encoding)
@@ -76,7 +76,7 @@ encodeChar c t = encode t []
     encode (PrefixTree.Branch l r) encoding =  encode l (DLeft:encoding)
                                            <|> encode r (DRight:encoding)
 
-encodingTable :: Ord a => PrefixTree.BinTree a -> M.Map a Encoding
+encodingTable :: Ord a => PrefixTree.PrefixTree a -> M.Map a Encoding
 encodingTable t = encode t []
   where
     encode (PrefixTree.Leaf a)     encoding = M.singleton a (reverse encoding)
@@ -90,13 +90,13 @@ encodeString m as =
   in
     concat <$> (sequence . enc $ as)
 
-decodeChar :: Encoding -> PrefixTree.BinTree a -> Maybe (a, Encoding)
+decodeChar :: Encoding -> PrefixTree.PrefixTree a -> Maybe (a, Encoding)
 decodeChar ds (PrefixTree.Leaf a) = Just(a, ds)
 decodeChar (DLeft:ds ) (PrefixTree.Branch l r) = decodeChar ds l
 decodeChar (DRight:ds) (PrefixTree.Branch l r) = decodeChar ds r
 decodeChar _ _ = Nothing
 
-decodeString :: Encoding -> PrefixTree.BinTree a -> [a]
+decodeString :: Encoding -> PrefixTree.PrefixTree a -> [a]
 decodeString ds t = unfoldr (`decodeChar` t) ds
 
 main :: IO ()
