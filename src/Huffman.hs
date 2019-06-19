@@ -2,12 +2,10 @@ module Huffman
     ( main
     ) where
 
-import Data.List
-import Control.Applicative
 import Weighted
-import qualified Data.Map.Strict as M
 import qualified Heap
 import qualified PrefixTree
+import qualified Data.Map.Strict as M
 
 type FreqTable a = M.Map a Int
 
@@ -42,41 +40,12 @@ buildTree h =
   in
     binTree
 
-data Direction = DLeft | DRight
-  deriving (Show, Eq)
-
-type Encoding = [Direction]
-
-encodingTable :: Ord a => PrefixTree.PrefixTree a -> M.Map a Encoding
-encodingTable t = encode t []
-  where
-    encode (PrefixTree.Leaf a)     encoding = M.singleton a (reverse encoding)
-    encode (PrefixTree.Branch l r) encoding = encode l (DLeft:encoding)
-                                           <> encode r (DRight:encoding)
-
-encodeString :: Ord a => (M.Map a Encoding) -> [a] ->  Maybe Encoding
-encodeString m as =
-  let
-    enc = map (\k -> M.lookup k m)
-  in
-    concat <$> (sequence . enc $ as)
-
-decodeChar :: Encoding -> PrefixTree.PrefixTree a -> Maybe (a, Encoding)
-decodeChar ds (PrefixTree.Leaf a) = Just(a, ds)
-decodeChar (DLeft:ds ) (PrefixTree.Branch l r) = decodeChar ds l
-decodeChar (DRight:ds) (PrefixTree.Branch l r) = decodeChar ds r
-decodeChar _ _ = Nothing
-
-decodeString :: Encoding -> PrefixTree.PrefixTree a -> [a]
-decodeString ds t = unfoldr (`decodeChar` t) ds
-
 main :: IO ()
 main = do
   let h = buildHeap "aaaaaabbcdef"
   let t = buildTree h
-  let e = encodingTable t
-  let Just c = encodeString e "abc"
-  let ds = decodeString c t
+  let Just c = PrefixTree.encodeString t "abc"
+  let ds = PrefixTree.decodeString c t
   print t
   print c
   print ds
