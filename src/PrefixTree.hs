@@ -9,10 +9,13 @@ module PrefixTree
     , decodeString
     ) where
 
-import Data.List
-import Control.Applicative
-import Weighted
-import qualified Data.Map.Strict as M
+import qualified Data.Map.Strict as M ( Map
+                                       , lookup
+                                       , singleton
+                                       )
+
+import Data.List (unfoldr)
+import Weighted (Weighted(Weighted))
 
 data PrefixTree a
     = Leaf a

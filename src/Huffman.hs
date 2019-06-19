@@ -2,10 +2,25 @@ module Huffman
     ( main
     ) where
 
-import Weighted
-import qualified Heap
-import qualified PrefixTree
-import qualified Data.Map.Strict as M
+import qualified Data.Map.Strict as M ( Map
+                                      , empty
+                                      , insertWith
+                                      , foldrWithKey
+                                      )
+
+import Weighted     ( Weighted(Weighted))
+import Heap         ( Heap
+                    , pop
+                    , push
+                    , emptyHeap
+                    )
+import PrefixTree   ( WeightedTree
+                    , PrefixTree
+                    , weightedLeaf
+                    , weightedBranch
+                    , encodeString
+                    , decodeString
+                    )
 
 type FreqTable a = M.Map a Int
 
@@ -14,29 +29,28 @@ frequencies = foldr f M.empty
   where
     f x m = M.insertWith (+) x 1 m
 
-type HTree = PrefixTree.WeightedTree Char
-type CHeap = Heap.Heap HTree
+type CHeap = Heap (WeightedTree Char)
 
 buildHeap :: String -> CHeap
-buildHeap s = M.foldrWithKey pushLeaf Heap.empty (frequencies s)
+buildHeap s = M.foldrWithKey pushLeaf emptyHeap (frequencies s)
   where
-    pushLeaf c i h = Heap.push (PrefixTree.weightedLeaf i c) h
+    pushLeaf c i h = push (weightedLeaf i c) h
 
 merge2 :: CHeap -> Maybe CHeap
 merge2 h = do
-  (x0, h0) <- Heap.pop h
-  (x1, h1) <- Heap.pop h0
-  let branch = PrefixTree.weightedBranch x0 x1
-  return $ Heap.push branch h1
+  (x0, h0) <- pop h
+  (x1, h1) <- pop h0
+  let branch = weightedBranch x0 x1
+  return $ push branch h1
 
-buildTree :: CHeap -> PrefixTree.PrefixTree Char
+buildTree :: CHeap -> PrefixTree Char
 buildTree h =
   let
     mergeRec h = case merge2 h of
       Nothing -> h
       Just h' -> mergeRec h'
 
-    Just (Weighted _ binTree) = fmap Prelude.fst . Heap.pop $ mergeRec h
+    Just (Weighted _ binTree) = fmap Prelude.fst . pop $ mergeRec h
   in
     binTree
 
@@ -44,8 +58,8 @@ main :: IO ()
 main = do
   let h = buildHeap "aaaaaabbcdef"
   let t = buildTree h
-  let Just c = PrefixTree.encodeString t "abc"
-  let ds = PrefixTree.decodeString c t
+  let Just c = encodeString t "abc"
+  let ds = decodeString c t
   print t
   print c
   print ds

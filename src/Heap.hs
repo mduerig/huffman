@@ -1,6 +1,6 @@
 module Heap 
     ( Heap
-    , empty
+    , emptyHeap
     , pop
     , push
     ) where
@@ -10,8 +10,8 @@ data Heap a
     | Branch a (Heap a) (Heap a)
     deriving Show
     
-empty :: Heap a
-empty = Empty    
+emptyHeap :: Heap a
+emptyHeap = Empty    
 
 heap :: Ord a => a -> Heap a
 heap a = Branch a Empty Empty
