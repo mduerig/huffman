@@ -7,8 +7,11 @@ module PrefixTree
     , weightedBranch
     , encodeString
     , decodeString
+    , Direction (DLeft, DRight)
+    , Encoding
     ) where
 
+import Data.Binary
 import qualified Data.Map.Strict as M ( Map
                                        , lookup
                                        , singleton
@@ -21,6 +24,22 @@ data PrefixTree a
     = Leaf a
     | Branch (PrefixTree a) (PrefixTree a)
     deriving (Show, Eq)
+
+instance Binary a => Binary (PrefixTree a) where
+  put (Leaf a) = do
+    put True
+    put a
+
+  put (Branch l r) = do
+    put False
+    put l
+    put r
+
+  get = do
+    isLeaf <- get
+    if isLeaf
+      then Leaf <$> get
+      else Branch <$> get <*> get
 
 ptLeaf :: a -> PrefixTree a
 ptLeaf = Leaf

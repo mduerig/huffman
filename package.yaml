@@ -12,6 +12,11 @@ tests:
     - huffman
 copyright: 2019 mduerig
 dependencies:
+- lens-family
+- pipes-parse
+- bytestring
+- pipes-bytestring
+- pipes
 - binary
 - mtl
 - containers
