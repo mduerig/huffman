@@ -22,7 +22,7 @@ extra-source-files:
 - README.md
 author: mduerig
 github: mduerig/huffman
-license: ASL-2.0
+license: Apache-2.0
 executables:
   huffman-exe:
     source-dirs: app
