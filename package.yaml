@@ -12,6 +12,7 @@ tests:
     - huffman
 copyright: 2019 mduerig
 dependencies:
+- pipes-binary
 - lens-family
 - pipes-parse
 - bytestring
