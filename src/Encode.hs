@@ -48,32 +48,42 @@ frequencies =
     where
         countOccurrence m x = M.insertWith (+) x 1 m
 
-toWord8 :: Monad m => Pipe ByteString Word8 m r
-toWord8 = PP.mapFoldable B.unpack
-
 analyseFile :: FilePath -> IO (Maybe (WeightedTree Word8))
 analyseFile inFile =
-    withFile inFile ReadMode $ \h -> do
-        let bytes = PS.fromHandle h >-> toWord8
-        fqs <- frequencies bytes
-        let heap = buildHeap fqs
-        return $ buildTree heap
+    let
+        toWord8 = PP.mapFoldable B.unpack
+    in
+        withFile inFile ReadMode $ \h -> do
+            let bytes = PS.fromHandle h >-> toWord8
+            fqs <- frequencies bytes
+            let heap = buildHeap fqs
+            return $ buildTree heap
 
 encodeBytes :: Monad m => PrefixTree Word8 -> Pipe ByteString Direction m r
 encodeBytes hTree = PP.mapFoldable (enc . B.unpack)
     where
         enc ws = concat (encodeString hTree ws)
 
-encodeDirections :: Monad m => Int -> Pipe Direction Word8 m ()
-encodeDirections len = readDirs len 0 0
+parseDirection :: Monad m => Parser Direction m (Maybe Word8)
+parseDirection = parse 0 0
     where
-        readDirs 0 _ w = yield w
-        readDirs l 8 w = yield w
-        readDirs l n w = do
-            d <- await
-            readDirs (l - 1) (n + 1)
-                (if d == DLeft then w
-                 else setBit w n)
+        parse 8 w = return $ Just w
+        parse n w = do
+            d <- draw
+            case d of
+                Just DLeft          -> parse (n + 1) w
+                Just DRight         -> parse (n + 1) (setBit w n)
+                Nothing | n == 0    -> return Nothing
+                        | otherwise -> return $ Just w
+
+parseDirections :: Monad m => Producer Direction m r -> Producer Word8 m ()
+parseDirections dirs = do
+    (dir, leftover) <- lift $ runStateT parseDirection dirs
+    case dir of
+        Just word8 -> do
+            yield word8
+            parseDirections leftover
+        Nothing -> return ()
 
 encodeFile :: FilePath -> FilePath -> Int -> PrefixTree Word8 -> IO ()
 encodeFile inFile outFile len hTree =
@@ -85,13 +95,13 @@ encodeFile inFile outFile len hTree =
             runEffect $
                 PS.fromLazy (encode (len, hTree))
                     >-> PS.toHandle hOut
-            runEffect $
-                convertToByteString
-                    (   PS.fromHandle hIn
+
+            let directions = PS.fromHandle hIn
                     >-> encodeBytes hTree
-                    >-> encodeDirections len
-                    )
-                >-> PS.toHandle hOut
+
+            runEffect $
+                (convertToByteString . parseDirections) directions
+                    >-> PS.toHandle hOut
 
 hEncode :: FilePath -> FilePath -> IO ()
 hEncode inFile outFile = do

@@ -32,6 +32,7 @@ toDirection :: Pipe Word8 Direction IO ()
 toDirection = do
     w <- await
     writeDirs w 0
+    toDirection
     where
         writeDirs _ 8 = return ()
         writeDirs w n = do
