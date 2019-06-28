@@ -18,6 +18,7 @@ import PrefixTree   ( WeightedTree
                     , PrefixTree
                     , weightedLeaf
                     , weightedBranch
+                    , encodeChars
                     , encodeString
                     , decodeString
                     )
@@ -58,7 +59,7 @@ main :: IO ()
 main = do
   let h = buildHeap "aaaaaabbcdef"
   let t = buildTree h
-  let Just c = encodeString t "abc"
+  let Just c = encodeString (encodeChars t) "abc"
   let ds = decodeString c t
   print t
   print c

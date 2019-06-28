@@ -62,7 +62,8 @@ analyseFile inFile =
 encodeBytes :: Monad m => PrefixTree Word8 -> Pipe ByteString Direction m r
 encodeBytes hTree = PP.mapFoldable (enc . B.unpack)
     where
-        enc ws = concat (encodeString hTree ws)
+        encoding = encodeChars hTree
+        enc ws = concat (encodeString encoding ws)
 
 parseDirection :: Monad m => Parser Direction m (Maybe Word8)
 parseDirection = parse 0 0

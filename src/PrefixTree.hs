@@ -5,6 +5,7 @@ module PrefixTree
     , WeightedTree
     , weightedLeaf
     , weightedBranch
+    , encodeChars
     , encodeString
     , decodeString
     , Direction (DLeft, DRight)
@@ -60,19 +61,15 @@ data Direction = DLeft | DRight
 
 type Encoding = [Direction]
 
-encodingTable :: Ord a => PrefixTree a -> M.Map a Encoding
-encodingTable t = encode t []
+encodeChars :: Ord a => PrefixTree a -> a -> Maybe Encoding
+encodeChars t = \k -> M.lookup k (encode t [])
   where
     encode (PrefixTree.Leaf a)     encoding = M.singleton a (reverse encoding)
     encode (PrefixTree.Branch l r) encoding = encode l (DLeft:encoding)
                                            <> encode r (DRight:encoding)
 
-encodeString :: Ord a => PrefixTree a -> [a] ->  Maybe Encoding
-encodeString t as =
-  let
-    encoding = map (\k -> M.lookup k (encodingTable t))
-  in
-    concat <$> (sequence . encoding $ as)
+encodeString :: Ord a => (a -> Maybe Encoding) -> [a] ->  Maybe Encoding
+encodeString enc as = concat <$> mapM enc as
 
 decodeChar :: Encoding -> PrefixTree a -> Maybe (a, Encoding)
 decodeChar ds (Leaf a) = Just(a, ds)
