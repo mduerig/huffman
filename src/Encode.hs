@@ -31,9 +31,7 @@ merge2 h = do
 buildTree :: PHeap a -> Maybe (WeightedTree a)
 buildTree h =
     let
-        mergeRec h = case merge2 h of
-            Nothing -> h
-            Just h' -> mergeRec h'
+        mergeRec h = maybe h mergeRec (merge2 h)
     in
         fmap Prelude.fst . pop $ mergeRec h
 

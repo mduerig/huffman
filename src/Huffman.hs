@@ -47,10 +47,7 @@ merge2 h = do
 buildTree :: CHeap -> PrefixTree Char
 buildTree h =
   let
-    mergeRec h = case merge2 h of
-      Nothing -> h
-      Just h' -> mergeRec h'
-
+    mergeRec h = maybe h mergeRec (merge2 h)
     Just (Weighted _ binTree) = fmap Prelude.fst . pop $ mergeRec h
   in
     binTree
